@@ -1,0 +1,8 @@
+{
+  "name": "default",
+  "version": "1.59.0-alpha-1771104257000",
+  "timestamp": 1773765038327,
+  "socketPath": "\\\\.\\pipe\\6ef07703380280cb-default.sock",
+  "cli": {},
+  "userDataDirPrefix": "D:\\软件\\长篇小说生成基于pi-mono\\novel-studio\\.localappdata\\ms-playwright\\daemon\\6ef07703380280cb\\ud-default"
+}

@@ -1,0 +1,38 @@
+﻿node_modules/
+dist/
+
+data/
+
+# secrets / local env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# model profile and local settings (contains apiKey)
+settings/
+**/model-profile.json
+
+# generated outputs and local runtime files
+*.log
+logs/
+run.log
+node.log
+bg-out.log
+bg-err.log
+server-bg.log
+
+# local caches / temp
+.npm-cache/
+.pw-browsers/
+.tmp-test/
+.tmp*/
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

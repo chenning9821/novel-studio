@@ -1,0 +1,233 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Novel Studio</title>
+		<link rel="stylesheet" href="/styles.css" />
+	</head>
+	<body>
+		<div class="bg-layer" aria-hidden="true"></div>
+
+		<header class="hero">
+			<div class="hero-copy">
+				<h1>Novel Studio</h1>
+				<p>向导式长篇小说生成工作台 · 单项目模式</p>
+			</div>
+			<div class="hero-actions">
+				<button id="open-create-dialog" class="btn btn-primary" type="button">新建小说</button>
+				<button id="reset-to-setup" class="btn btn-soft" type="button" disabled>返回开始</button>
+				<button id="refresh-projects" class="btn btn-soft" type="button">刷新</button>
+				<button id="open-settings" class="btn btn-ghost" type="button">设置</button>
+			</div>
+		</header>
+
+		<main class="workspace">
+			<section class="panel main-panel" id="project-detail">
+				<div class="panel-head">
+					<h2>当前流程</h2>
+					<span id="project-status-badge" class="status-badge">未创建</span>
+				</div>
+
+				<div id="single-project-hint" class="hint-block">单项目模式：当前没有项目，请先创建小说。</div>
+
+				<div id="project-meta" class="meta-grid">暂无项目</div>
+
+				<nav id="workflow-stepper" class="stepper" aria-label="Workflow Steps">
+					<div class="step" data-stage="setup"><span>1</span><b>项目创建</b></div>
+					<div class="step" data-stage="decisions"><span>2</span><b>决策选择</b></div>
+					<div class="step" data-stage="plan_review"><span>3</span><b>Plan 审阅</b></div>
+					<div class="step" data-stage="generating"><span>4</span><b>生成阶段</b></div>
+				</nav>
+
+				<section id="stage-setup-view" class="stage-view hidden">
+					<h3>第一步：创建项目</h3>
+					<p>点击「新建小说」，在大对话框中一次性填写 Prompt 与约束参数。</p>
+					<button id="open-create-dialog-inline" class="btn btn-primary" type="button">打开创建对话框</button>
+				</section>
+
+				<section id="stage-decisions-view" class="stage-view hidden">
+					<div class="stage-head">
+						<h3>第二步：决策选择</h3>
+						<div class="stage-actions">
+							<button id="generate-decisions" class="btn btn-soft" type="button">生成决策题</button>
+							<button id="regenerate-decisions" class="btn btn-soft" type="button">重生成决策</button>
+						</div>
+					</div>
+					<p id="decision-hint" class="decision-hint">先生成决策题，再勾选并应用选择。</p>
+					<div id="decision-list" class="decision-list"></div>
+					<div class="decision-actions">
+						<button id="apply-decisions" class="btn btn-primary" type="button">应用选择并继续</button>
+					</div>
+				</section>
+
+				<section id="stage-plan-view" class="stage-view hidden">
+					<div class="stage-head">
+						<h3>第三步：Plan 确认</h3>
+						<div class="stage-actions">
+							<button id="regenerate-plan" class="btn btn-soft" type="button">补充信息重新生成</button>
+							<button id="confirm-plan" class="btn btn-primary" type="button">确认 Plan 并进入生成</button>
+						</div>
+					</div>
+					<p class="decision-hint">决策完成后会自动生成首版 Plan。你可以补充需求后重生整包，再确认进入生成。</p>
+					<label class="plan-guidance-label">补充信息（用于重生 Plan）
+						<textarea id="plan-regenerate-guidance" placeholder="例如：强化反派压迫感；第1卷前10章节奏再快一点。"></textarea>
+					</label>
+					<div id="plan-sections" class="plan-sections"></div>
+				</section>
+
+				<section id="stage-generating-view" class="stage-view hidden">
+					<div class="stage-head">
+						<h3>第四步：生成阶段</h3>
+						<div class="stage-actions">
+							<button data-action="stop" class="btn btn-soft" type="button">暂停</button>
+							<button data-action="resume" class="btn btn-primary" type="button">恢复</button>
+							<button data-action="terminate" class="btn btn-danger" type="button">终止</button>
+						</div>
+					</div>
+					<p class="decision-hint">生成阶段只保留暂停、恢复、终止三个控制动作。</p>
+				
+					<div class="fine-outline-panel">
+						<div class="panel-head compact">
+							<h3>&#24050;&#29983;&#25104;&#32454;&#32434;</h3>
+						</div>
+						<div id="fine-outline-list" class="plan-sections"></div>
+					</div>
+				</section>
+
+				<section id="stage-finished-view" class="stage-view hidden">
+					<h3>任务完成</h3>
+					<p>小说流水线已完成。若要新建下一部，请终止当前项目并返回创建阶段。</p>
+					<button id="finished-terminate" class="btn btn-danger" type="button">终止并返回创建</button>
+				</section>
+			</section>
+
+			<section class="panel progress-panel">
+				<div class="panel-head">
+					<h2>实时进度与模型调用日志</h2>
+					<button id="clear-log" class="btn btn-soft" type="button">清空显示</button>
+				</div>
+				<div id="event-log" class="event-log" aria-live="polite"></div>
+			</section>
+			<section class="panel live-panel">
+				<div class="panel-head">
+					<h2>实时小说流</h2>
+					<button id="clear-live" class="btn btn-soft" type="button">清空流</button>
+				</div>
+				<div class="live-grid">
+					<div class="live-block">
+						<h3 id="live-current-title">当前流式章节</h3>
+						<pre id="live-current-stream" class="live-stream"></pre>
+					</div>
+					<div class="live-block">
+						<h3 id="live-latest-title">最近完成章节</h3>
+						<textarea id="live-latest-content" class="live-latest" readonly></textarea>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<div id="create-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="create-modal-title">
+			<div class="modal-card">
+				<div class="modal-head">
+					<h2 id="create-modal-title">创建小说项目</h2>
+					<button id="close-create-dialog" class="icon-btn" type="button" aria-label="关闭">×</button>
+				</div>
+				<p class="modal-subtitle">填写 Prompt 与参数后创建。创建成功将自动进入决策阶段。</p>
+
+				<form id="project-form" class="project-form">
+					<label class="span-2">创作 Prompt
+						<textarea name="prompt" required placeholder="例：写一部古典仙侠长篇，强调人物抉择与代价。"></textarea>
+					</label>
+
+					<label>项目标题
+						<input name="title" required placeholder="例如：云海问道" />
+					</label>
+					<label>目标全文字数
+						<input name="target_total_words" type="number" value="300000" required />
+					</label>
+
+					<label>题材
+						<input name="genre" value="仙侠" />
+					</label>
+					<label>主题
+						<input name="theme" value="成长与代价" />
+					</label>
+
+					<label>语言风格
+						<input name="style" value="克制、具象、留白" />
+					</label>
+					<label>禁忌约束
+						<input name="taboos" value="避免系统文口吻" />
+					</label>
+
+					<label>输出语言
+						<input name="language" value="中文" />
+					</label>
+					<label>卷数
+						<input name="volumeCount" type="number" value="3" min="1" />
+					</label>
+
+					<label>每卷章节
+						<input name="chaptersPerVolume" type="number" value="20" min="1" />
+					</label>
+
+					<div class="modal-actions span-2">
+						<button id="cancel-create-dialog" class="btn btn-ghost" type="button">取消</button>
+						<button class="btn btn-primary" type="submit">创建并进入流程</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div id="settings-drawer" class="drawer hidden" aria-hidden="true">
+			<div class="drawer-mask" id="close-settings-mask"></div>
+			<aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+				<div class="drawer-head">
+					<h2 id="settings-title">模型设置</h2>
+					<button id="close-settings" class="icon-btn" type="button" aria-label="关闭">×</button>
+				</div>
+				<p class="modal-subtitle">保存后立即生效。模型调用日志会在右侧实时打印。</p>
+
+				<form id="model-form" class="model-form">
+					<label>API
+						<select name="api">
+							<option value="openai-completions">openai-completions</option>
+							<option value="openai-responses">openai-responses</option>
+						</select>
+					</label>
+					<label>Provider <input name="provider" /></label>
+					<label class="span-2">Model ID <input name="modelId" /></label>
+					<label class="span-2">Base URL <input name="baseUrl" /></label>
+					<label class="span-2">API Key <input name="apiKey" type="password" /></label>
+					<label>Temperature <input name="temperature" type="number" step="0.1" /></label>
+					<label>Top P <input name="topP" type="number" step="0.01" /></label>
+					<label>Max Tokens <input name="maxTokens" type="number" /></label>
+					<label>RPM <input name="rpmLimit" type="number" /></label>
+					<label>Thinking
+						<select name="thinking">
+							<option value="off">off</option>
+							<option value="minimal">minimal</option>
+							<option value="low">low</option>
+							<option value="medium">medium</option>
+							<option value="high">high</option>
+							<option value="xhigh">xhigh</option>
+						</select>
+					</label>
+					<label>重试次数 <input name="retryMaxRetries" type="number" /></label>
+					<label>重试基础延迟(ms) <input name="retryBaseDelayMs" type="number" /></label>
+					<label>重试最大延迟(ms) <input name="retryMaxDelayMs" type="number" /></label>
+					<div class="span-2 drawer-actions">
+						<button class="btn btn-primary" type="submit">保存模型配置</button>
+					</div>
+				</form>
+			</aside>
+		</div>
+
+		<script type="module" src="/app.js"></script>
+	</body>
+</html>
+
+
+
+

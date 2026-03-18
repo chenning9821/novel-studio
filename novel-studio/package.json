@@ -1,0 +1,25 @@
+{
+    "name":  "novel-studio",
+    "private":  true,
+    "version":  "0.1.0",
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "npm run build \u0026\u0026 node dist/main.js",
+                    "build":  "tsc -p tsconfig.json \u0026\u0026 shx mkdir -p dist/public \u0026\u0026 shx cp -r src/public/* dist/public/",
+                    "start":  "node dist/main.js",
+                    "test":  "tsc -p tsconfig.test.json \u0026\u0026 node --test --experimental-test-isolation=none .tmp-test/test/*.test.js",
+                    "check":  "tsc --noEmit"
+                },
+    "dependencies":  {
+                         "@mariozechner/pi-agent-core":  "^0.58.4",
+                         "@mariozechner/pi-ai":  "^0.58.4",
+                         "@sinclair/typebox":  "^0.34.41"
+                     },
+    "devDependencies":  {
+                            "@types/node":  "^22.10.5",
+                            "shx":  "^0.4.0",
+                            "tsx":  "^4.20.3",
+                            "typescript":  "^5.9.2",
+                            "vitest":  "^3.2.4"
+                        }
+}
